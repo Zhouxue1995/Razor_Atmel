@@ -36,9 +36,6 @@ Runs current task state.  Should only be called once in main loop.
 
 #include "configuration.h"
 
-#ifdef MPG1
-  static LedNumberType aeCurrentLed[]  = {WHITE, PURPLE, BLUE, CYAN, GREEN, YELLOW, ORANGE, RED};
-#endif /* MPG 1 */
 
 /***********************************************************************************************************************
 Global variable definitions with scope across entire project.
@@ -92,21 +89,7 @@ Promises:
 */
 void UserAppInitialize(void)
 {
-  #ifdef MPG1
-  static LedNumberType aeCurrentLed[]  = {WHITE, PURPLE, BLUE, CYAN, GREEN, YELLOW, ORANGE, RED};
-#endif /* MPG 1 */
-  static u8 u8CurrentLedIndex  = 0;
-  static u16 u16BlinkCount = 0;
-
-u16BlinkCount++;
-
-if(u16BlinkCount == 50)
-{
-  u16BlinkCount = 0;
-    LedOn((LedNumberType) aeCurrentLed[u8CurrentLedIndex]); 
- u8CurrentLedIndex++;
-  
-}
+ 
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -155,7 +138,48 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
-    
+   #ifdef MPG1
+  static LedNumberType aeCurrentLed[]  = {WHITE, PURPLE, BLUE, CYAN, GREEN, YELLOW, ORANGE, RED};
+#endif /* MPG 1 */
+  
+    static u8 u8CurrentLedIndex  = 0;
+    static u8 u8CurrentLed  = 0;
+  static u16 u16BlinkCount = 0;
+  static u8 u8counter=0;
+ //while(1)
+ //{
+   u16BlinkCount++;
+  if( u8CurrentLedIndex<8)
+  {
+
+   if((u16BlinkCount == 200) && (u8counter==0))
+   {
+      u16BlinkCount = 0;
+      LedOn((LedNumberType) aeCurrentLed[u8CurrentLedIndex]); 
+      u8CurrentLedIndex++;
+      u8CurrentLed++;
+   }
+  }
+ if ( u8CurrentLed==8)
+  {
+     u8counter=1;
+ 
+  }
+   if((u16BlinkCount == 200) && (u8counter==1))   
+  {
+      u16BlinkCount = 0;
+     
+     LedOff((LedNumberType) aeCurrentLed[u8CurrentLed]);
+     u8CurrentLed--;
+     
+   }
+  if(u8CurrentLed==0)
+  {
+        u8CurrentLedIndex=0;
+        u8counter=0;
+  }
+ 
+  
 } /* end UserAppSM_Idle() */
      
 
