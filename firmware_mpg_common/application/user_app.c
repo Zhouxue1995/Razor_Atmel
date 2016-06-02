@@ -36,7 +36,6 @@ Runs current task state.  Should only be called once in main loop.
 
 #include "configuration.h"
 
-
 /***********************************************************************************************************************
 Global variable definitions with scope across entire project.
 All Global variable names shall start with "G_"
@@ -89,7 +88,14 @@ Promises:
 */
 void UserAppInitialize(void)
 {
- 
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -138,48 +144,69 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
-   #ifdef MPG1
-  static LedNumberType aeCurrentLed[]  = {WHITE, PURPLE, BLUE, CYAN, GREEN, YELLOW, ORANGE, RED};
-#endif /* MPG 1 */
-  
-    static u8 u8CurrentLedIndex  = 0;
-    static u8 u8CurrentLed  = 0;
-  static u16 u16BlinkCount = 0;
-  static u8 u8counter=0;
- //while(1)
- //{
-   u16BlinkCount++;
-  if( u8CurrentLedIndex<8)
-  {
+  static LedRateType aeBlinkRate[] = {LED_1HZ, LED_2HZ, LED_4HZ, LED_8HZ};
+  static u8 u8BlinkRateIndex = 0;
+  static bool bYellowBlink=FALSE;
+  if( IsButtonPressed(BUTTON1) )
+ {
+  /* The button is currently pressed, so make sure the LED is on */
+  LedOn(PURPLE);
+ }
+ else
+ {
+  /* The button is not pressed, so make sure the LED is off */
+  LedOff(PURPLE);
+ }
+ 
+ if( IsButtonPressed(BUTTON2) )
+ {
+  /* The button is currently pressed, so make sure the LED is on */
+  LedOn(BLUE);
+ }
+ else
+ {
+  /* The button is not pressed, so make sure the LED is off */
+  LedOff(BLUE);
+ }
+ 
+ if( WasButtonPressed(BUTTON3) )
+ {
+    /* Be sure to acknowledge the button press */
+    ButtonAcknowledge(BUTTON3);
 
-   if((u16BlinkCount == 200) && (u8counter==0))
-   {
-      u16BlinkCount = 0;
-      LedOn((LedNumberType) aeCurrentLed[u8CurrentLedIndex]); 
-      u8CurrentLedIndex++;
-      u8CurrentLed++;
-   }
-  }
- if ( u8CurrentLed==8)
+    /* If the LED is already blinking, toggle it off */
+    if(bYellowBlink)
+    {
+      bYellowBlink = FALSE;
+      LedOff(YELLOW);
+    }
+    else
+    {
+     /* start blinking the LED at the current rate */
+      bYellowBlink = TRUE;
+      LedBlink(YELLOW,aeBlinkRate[u8BlinkRateIndex]);
+    }
+
+ } 
+   if( WasButtonPressed(BUTTON0) )
   {
-     u8counter=1;
- 
+    /* Be sure to acknowledge the button press */
+    ButtonAcknowledge(BUTTON0);
+
+    /* Update the blink rate and handle overflow only if the LED is currently blinking */
+    
+    if(bYellowBlink)
+    {
+      u8BlinkRateIndex++;
+      if(u8BlinkRateIndex == 4)
+      {
+        u8BlinkRateIndex = 0;
+      }
+      
+      /* Request the rate udpate */
+      LedBlink(YELLOW, aeBlinkRate[u8BlinkRateIndex]);
+    }
   }
-   if((u16BlinkCount == 200) && (u8counter==1))   
-  {
-      u16BlinkCount = 0;
-     
-     LedOff((LedNumberType) aeCurrentLed[u8CurrentLed]);
-     u8CurrentLed--;
-     
-   }
-  if(u8CurrentLed==0)
-  {
-        u8CurrentLedIndex=0;
-        u8counter=0;
-  }
- 
-  
 } /* end UserAppSM_Idle() */
      
 
@@ -187,7 +214,7 @@ static void UserAppSM_Idle(void)
 /* Handle an error */
 static void UserAppSM_Error(void)          
 {
-  
+ 
 } /* end UserAppSM_Error() */
 
 
