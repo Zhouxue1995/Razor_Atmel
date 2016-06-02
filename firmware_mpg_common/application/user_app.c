@@ -58,7 +58,12 @@ Global variable definitions with scope limited to this local application.
 Variable names shall start with "UserApp_" and be declared as static.
 ***********************************************************************************************************************/
 static fnCode_type UserApp_StateMachine;            /* The state machine function pointer */
-static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
+static u32 UserApp_u32Timeout;   
+void delay_ms(u16 u16itime)
+{
+ while(u16itime--);
+}
+/* Timeout counter used across states */
 
 
 /**********************************************************************************************************************
@@ -88,7 +93,7 @@ Promises:
 */
 void UserAppInitialize(void)
 {
-  
+   PWMAudioSetFrequency(BUZZER1, 500);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -137,9 +142,202 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
+  static u16 u16Counter = 490;
+  
+  u16Counter++;
+  /* if(IsButtonPressed(BUTTON0))
+  {
+    PWMAudioOn(BUZZER1);
+  }
+  else
+  {
+    PWMAudioOff(BUZZER1);
+  } */
+  if(u16Counter < 6000 || (u16Counter > 6500 &&u16Counter < 8000)||(u16Counter > 8500&& u16Counter < 14000)||u16Counter > 14500 && u16Counter < 16000)
+  {
+    PWMAudioOn(BUZZER1);
+  }
+  
+  //if(WasButtonPressed(BUTTON0))
+  
+  if(u16Counter == 500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
     
-} /* end UserAppSM_Idle() */
+  }
+
+  if(u16Counter == 1000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1175);
+    
+    
+  }
+   if(u16Counter == 1500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1318);
+    
+  }
+   if(u16Counter == 2000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
+    
+  }
+  
+  ///////////////////////////
+  if(u16Counter == 2500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
+  }
+  if(u16Counter == 3000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1175);
+  }
+  if(u16Counter == 3500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1318);
+  }
+  if(u16Counter == 4000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
+  }
+  
+  /////////////////////
+  if(u16Counter == 4500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1318);
+  }
+  if(u16Counter == 5000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1397);
+  }
+  if(u16Counter == 5500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1568);
+  }
+  
+   if(u16Counter == 6000)
+      PWMAudioOff(BUZZER1);
+  
+  if(u16Counter == 6500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1318);
+  }
+  if(u16Counter == 7000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1397);
+  }
+  if(u16Counter == 7500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1568);
+  }
+  
+   if(u16Counter == 8000)
+      PWMAudioOff(BUZZER1);
+  ////////////////////////
+  if(u16Counter == 8500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1568);
+  }
+  if(u16Counter == 8750)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1760);
+  }
+  if(u16Counter == 9000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1568);
+  }
+  if(u16Counter == 9250)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1397);
+  }
+  if(u16Counter == 9500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1318);
+  }
+  if(u16Counter == 10000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
+  }
+  
+  
+  if(u16Counter == 10500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1568);
+  }
+  if(u16Counter == 10750)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1760);
+  }
+  if(u16Counter == 11000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1568);
+  }
+  if(u16Counter == 11250)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1397);
+  }
+  if(u16Counter == 11500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1318);
+  }
+  if(u16Counter == 12000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
+  }
+ /////////////////////// 
+  
+  if(u16Counter == 12500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1175);
+  }
+    if(u16Counter == 13000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 784);
+  }
+  if(u16Counter == 13500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
+  }
+  
+  if(u16Counter == 14000)
+     PWMAudioOff(BUZZER1);
+  
+  if(u16Counter == 14500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1175);
+  }
+    if(u16Counter == 15000)
+  {
+    PWMAudioSetFrequency(BUZZER1, 784);
+  }
+  if(u16Counter == 15500)
+  {
+    PWMAudioSetFrequency(BUZZER1, 1046);
+  }
+
+   /* Tone is on as long as button is pressed */
+  /*
+  if( IsButtonPressed(BUTTON0) || IsButtonPressed(BUTTON1) ||
+      IsButtonPressed(BUTTON2) || IsButtonPressed(BUTTON3) )
+  {
+    PWMAudioOn(BUZZER1);
+  }
+  else
+  {
+    PWMAudioOff(BUZZER1);    
+  } 
+  */
+  if(u16Counter == 16000)
+  {
+    PWMAudioOff(BUZZER1);
      
+  }
+  if(u16Counter == 16500)
+  {
+    u16Counter = 490;
+  }
+   
+} /* end UserAppSM_Idle() */
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
