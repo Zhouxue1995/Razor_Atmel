@@ -36,10 +36,6 @@ Runs current task state.  Should only be called once in main loop.
 
 #include "configuration.h"
 
-#ifdef MPG1
-  static LedNumberType aeCurrentLed[]  = {WHITE, PURPLE, BLUE, CYAN, GREEN, YELLOW, ORANGE, RED};
-#endif /* MPG 1 */
-
 /***********************************************************************************************************************
 Global variable definitions with scope across entire project.
 All Global variable names shall start with "G_"
@@ -92,21 +88,7 @@ Promises:
 */
 void UserAppInitialize(void)
 {
-  #ifdef MPG1
-  static LedNumberType aeCurrentLed[]  = {WHITE, PURPLE, BLUE, CYAN, GREEN, YELLOW, ORANGE, RED};
-#endif /* MPG 1 */
-  static u8 u8CurrentLedIndex  = 0;
-  static u16 u16BlinkCount = 0;
-
-u16BlinkCount++;
-
-if(u16BlinkCount == 50)
-{
-  u16BlinkCount = 0;
-    LedOn((LedNumberType) aeCurrentLed[u8CurrentLedIndex]); 
- u8CurrentLedIndex++;
   
-}
   /* If good initialization, set state to Idle */
   if( 1 )
   {
