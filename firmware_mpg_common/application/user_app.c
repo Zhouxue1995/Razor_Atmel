@@ -154,6 +154,7 @@ static void UserAppSM_Idle(void)
   static u8 u8flag=FALSE;
   static u8 u8i=0;
   static u8 u8CountReally=0;
+  static u8 u8NumberCharacters=0;
   
   u8time++;
   if(u8time==10)
@@ -181,6 +182,7 @@ static void UserAppSM_Idle(void)
         u8CountReally=0;
       } 
       u8CountReally++;
+      u8NumberCharacters++;
     }
     u8flag=FALSE; 
   }
