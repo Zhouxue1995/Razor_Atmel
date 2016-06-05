@@ -61,7 +61,10 @@ static fnCode_type UserApp_StateMachine;            /* The state machine functio
 static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
 
 static u8 UserApp_au8MyName[] = "A3.Zhou Xue";
+extern u8 G_au8DebugScanfBuffer[];   
+extern u8 G_u8DebugScanfCharCount; 
 
+static u8 au8UserInputBuffer[USER_INPUT_BUFFER_SIZE];
 
 /**********************************************************************************************************************
 Function Definitions
@@ -96,8 +99,7 @@ void UserAppInitialize(void)
    /* Backlight to purple */  
   LedOn(LCD_RED);
   LedOff(LCD_GREEN);
-  LedOn(LCD_BLUE);
-  
+  LedOn(LCD_BLUE); 
   
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -147,7 +149,35 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
+  static u8 u8CharCount=0;
+  static u8 u8time=0;
+  static u8 u8flag=FALSE;
+  static u8 u8i=0;
+  static u8 u8CountReally=0;
+  
+  u8time++;
+  if(u8time==10)
+  {
+   u8time=0;
+   u8flag=TRUE;
+  }
+  else
+  {
+   u8flag=FALSE;
+  }
+  if(u8flag=TRUE)
+  {
+    /* Read the buffer and print the contents */
+    u8CharCount = DebugScanf(au8UserInputBuffer);
+    au8UserInputBuffer[u8CharCount] = '\0';
+    for(u8i=0;u8i<u8CharCount;u8i++)
+    {
+     LCDMessage (LINE2_START_ADDR+u8CountReally,au8UserInputBuffer); 
+     u8CountReally++;
+    }
     
+  }
+   u8flag=FALSE; 
 } /* end UserAppSM_Idle() */
      
 
