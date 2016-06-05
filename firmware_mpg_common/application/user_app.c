@@ -155,6 +155,7 @@ static void UserAppSM_Idle(void)
   static u8 u8i=0;
   static u8 u8CountReally=0;
   static u8 u8NumberCharacters=0;
+  static u8 u8String[] = "\n\rTotal number of charactersis: \n\r";
   
   u8time++;
   if(u8time==10)
@@ -192,6 +193,13 @@ static void UserAppSM_Idle(void)
     ButtonAcknowledge(BUTTON0);
     LCDClearChars(LINE2_START_ADDR,20); 
     u8CountReally=0;
+  }
+  
+  if(WasButtonPressed(BUTTON1))
+  {
+    ButtonAcknowledge(BUTTON1);
+    DebugPrintf(u8String);
+    DebugPrintNumber(u8NumberCharacters); 
   }
     
 } /* end UserAppSM_Idle() */
