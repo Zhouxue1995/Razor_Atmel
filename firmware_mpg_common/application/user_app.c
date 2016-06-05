@@ -187,7 +187,12 @@ static void UserAppSM_Idle(void)
     u8flag=FALSE; 
   }
    
-  
+  if(WasButtonPressed(BUTTON0))
+  {
+    ButtonAcknowledge(BUTTON0);
+    LCDClearChars(LINE2_START_ADDR,20); 
+    u8CountReally=0;
+  }
     
 } /* end UserAppSM_Idle() */
      
