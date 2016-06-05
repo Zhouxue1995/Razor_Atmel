@@ -93,6 +93,12 @@ void UserAppInitialize(void)
   LCDMessage(LINE1_START_ADDR, UserApp_au8MyName);
   LCDClearChars(LINE1_START_ADDR +11 , 9);
   
+   /* Backlight to purple */  
+  LedOn(LCD_RED);
+  LedOff(LCD_GREEN);
+  LedOn(LCD_BLUE);
+  
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
