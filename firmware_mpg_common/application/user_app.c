@@ -60,6 +60,8 @@ Variable names shall start with "UserApp_" and be declared as static.
 static fnCode_type UserApp_StateMachine;            /* The state machine function pointer */
 static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
 
+static u8 UserApp_au8MyName[] = "A3.Zhou Xue";
+
 
 /**********************************************************************************************************************
 Function Definitions
@@ -88,6 +90,8 @@ Promises:
 */
 void UserAppInitialize(void)
 {
+  LCDMessage(LINE1_START_ADDR, UserApp_au8MyName);
+  LCDClearChars(LINE1_START_ADDR +11 , 9);
   
   /* If good initialization, set state to Idle */
   if( 1 )
