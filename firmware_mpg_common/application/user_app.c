@@ -173,11 +173,20 @@ static void UserAppSM_Idle(void)
     for(u8i=0;u8i<u8CharCount;u8i++)
     {
      LCDMessage (LINE2_START_ADDR+u8CountReally,au8UserInputBuffer); 
-     u8CountReally++;
+     
+      if(u8CountReally==20)
+      {
+        LCDClearChars(LINE2_START_ADDR,20); 
+        LCDMessage (LINE2_START_ADDR,au8UserInputBuffer); 
+        u8CountReally=0;
+      } 
+      u8CountReally++;
     }
-    
+    u8flag=FALSE; 
   }
-   u8flag=FALSE; 
+   
+  
+    
 } /* end UserAppSM_Idle() */
      
 
