@@ -60,11 +60,12 @@ Variable names shall start with "UserApp_" and be declared as static.
 static fnCode_type UserApp_StateMachine;            /* The state machine function pointer */
 static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
 
-static u8 UserApp_au8MyName[] = "A3.Zhou Xue";
+static u8 UserApp_au8MyName[] = "A3.ZhouXue";
 extern u8 G_au8DebugScanfBuffer[];   
 extern u8 G_u8DebugScanfCharCount; 
 
 static u8 au8UserInputBuffer[USER_INPUT_BUFFER_SIZE];
+static u8 u8namebuffer[200];
 
 /**********************************************************************************************************************
 Function Definitions
@@ -94,7 +95,7 @@ Promises:
 void UserAppInitialize(void)
 {
   LCDMessage(LINE1_START_ADDR, UserApp_au8MyName);
-  LCDClearChars(LINE1_START_ADDR +11 , 9);
+  LCDClearChars(LINE1_START_ADDR +10 , 11);
   
    /* Backlight to purple */  
   LedOn(LCD_RED);
@@ -149,26 +150,32 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
+  bool flag=FALSE;
   static u8 u8CharCount=0;
   static u8 u8time=0;
-  static u8 u8flag=FALSE;
   static u8 u8i=0;
   static u8 u8CountReally=0;
   static u8 u8NumberCharacters=0;
   static u8 u8String[] = "\n\rTotal number of charactersis: \n\r";
   static u8 u8String1[] = "\n\rcharacter count cleared! \n\r";
+  static u8 u8String2[] = "\n\rname buffer is: \n\r";
+  static u8 u8MyName[] = "zhouxue";
+  static u8 u8NameCount = 0;
+  static u8 u8j=0;
+  static u8 u8t=0;
+  static u8 u8n=0;
   
   u8time++;
   if(u8time==10)
   {
    u8time=0;
-   u8flag=TRUE;
+   flag=TRUE;
   }
   else
   {
-   u8flag=FALSE;
+   flag=FALSE;
   }
-  if(u8flag=TRUE)
+  if(flag=TRUE)
   {
     /* Read the buffer and print the contents */
     u8CharCount = DebugScanf(au8UserInputBuffer);
@@ -182,11 +189,13 @@ static void UserAppSM_Idle(void)
         LCDClearChars(LINE2_START_ADDR,20); 
         LCDMessage (LINE2_START_ADDR,au8UserInputBuffer); 
         u8CountReally=0;
-      } 
+      }
+     
+     
       u8CountReally++;
       u8NumberCharacters++;
     }
-    u8flag=FALSE; 
+    flag=FALSE; 
   }
    
   if(WasButtonPressed(BUTTON0))
@@ -210,6 +219,27 @@ static void UserAppSM_Idle(void)
     DebugPrintf(u8String1);
     u8CountReally=0;
     u8NumberCharacters=0;
+  }
+ 
+
+    if(u8MyName[u8j]==au8UserInputBuffer[u8t]||u8MyName[u8j]==au8UserInputBuffer[u8t]+32 )
+    {
+      u8namebuffer[u8n++]=au8UserInputBuffer[u8t];
+      u8j++; 
+      if(u8j==7)
+      {
+        u8j=0;
+        u8NameCount++;
+      } 
+    } 
+   
+  
+  
+  if(WasButtonPressed(BUTTON3))
+  {
+    ButtonAcknowledge(BUTTON3);
+    DebugPrintf(u8String2);
+    DebugPrintf(u8namebuffer);  
   }
     
 } /* end UserAppSM_Idle() */
