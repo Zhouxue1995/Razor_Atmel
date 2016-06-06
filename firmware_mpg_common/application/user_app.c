@@ -42,6 +42,7 @@ All Global variable names shall start with "G_"
 ***********************************************************************************************************************/
 /* New variables */
 volatile u32 G_u32UserAppFlags;                       /* Global state flags */
+volatile u8 u8n=0;
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
@@ -163,7 +164,7 @@ static void UserAppSM_Idle(void)
   static u8 u8NameCount = 0;
   static u8 u8j=0;
   static u8 u8t=0;
-  static u8 u8n=0;
+ 
   
   u8time++;
   if(u8time==10)
