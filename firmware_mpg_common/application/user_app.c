@@ -136,8 +136,332 @@ State Machine Function Definitions
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
-{
-    
+{  
+  static u8 flag0=FALSE; 
+  static u8 flag1=FALSE; 
+  static u8 flag2=FALSE; 
+  static u8 flag3=FALSE; 
+  static u16 u16Counter = 480;
+  static u8 i = 0;
+  
+  LedOn(LCD_RED);
+  LedOff(LCD_GREEN);
+  LedOn(LCD_BLUE);
+   
+   /*Press button0 .The first song.Little star */
+  if(WasButtonPressed(BUTTON0))
+  {
+    ButtonAcknowledge(BUTTON0);
+    flag0=TRUE;
+  }
+  if(flag0)
+  { 
+    char music0[100] = "1111011110555505555066660666605555500444404444033330333302222022220111110";
+    u16Counter++; 
+  
+    if((u16Counter-500)%100 == 0 && u16Counter < 7701)
+    {
+        
+          switch(music0[i])
+        {
+          case '1': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 533);
+                  LedOn(WHITE);
+                  break;
+          case '2': PWMAudioOn(BUZZER2);
+                  PWMAudioSetFrequency(BUZZER2, 587);
+                  LedOn(PURPLE);
+                  break;
+          case '3': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 659);
+                  LedOn(BLUE);
+                  break;
+          case '4': PWMAudioOn(BUZZER2);
+                  PWMAudioSetFrequency(BUZZER2, 698);
+                  LedOn(CYAN);
+                  break;
+          case '5': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 784);
+                  LedOn(GREEN);
+                  break;
+          case '6': PWMAudioOn(BUZZER2);
+                  PWMAudioSetFrequency(BUZZER2, 880);
+                  LedOn(YELLOW);
+                  break; 
+          case '7': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 988);
+                  LedOn(ORANGE);
+                  break; 
+                  /* 5 slow */
+          case '8': PWMAudioOn(BUZZER2);
+                  PWMAudioSetFrequency(BUZZER2, 392);
+                  break; 
+          case '0': PWMAudioOff(BUZZER1);
+                    PWMAudioOff(BUZZER2);
+                    LedOff(WHITE);
+                    LedOff(PURPLE);
+                    LedOff(BLUE);
+                    LedOff(CYAN);
+                    LedOff(GREEN);
+                    LedOff(YELLOW);
+                    LedOff(ORANGE);
+                    break;                  
+        }
+        i++;
+     }
+     /* 15 seconds countdown and the red led blink */  
+    if(u16Counter == 7700)
+    {
+      PWMAudioOff(BUZZER1);
+      PWMAudioOff(BUZZER2);
+      LedBlink(RED, LED_2HZ);
+    }
+    if(u16Counter == 22700)
+    {
+     LedOff(RED);
+     flag0=FALSE;
+     u16Counter=480;
+     i = 0;
+    }
+  }
+ 
+ 
+  /*Press button1 .The second song.Two tigers  */
+  if(WasButtonPressed(BUTTON1))
+  {
+    ButtonAcknowledge(BUTTON1);
+    flag1=TRUE;
+  }
+  if(flag1)
+  { 
+    char music1[100] = "1122331111223311334455003344550";
+    u16Counter++; 
+  
+    if((u16Counter-500)%200 == 0 && u16Counter < 6701)
+    {
+        
+          switch(music1[i])
+        {
+          case '1': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 533);
+                  LedOn(WHITE);
+                  LedOff(BLUE);
+                  break;
+          case '2': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 587);
+                  LedOn(PURPLE);
+                  LedOff(WHITE);
+                  break;
+          case '3': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 659);
+                  LedOn(BLUE);
+                  LedOff(PURPLE);
+                  LedOff(WHITE);
+                  break;
+          case '4': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 698);
+                  LedOn(CYAN);
+                  LedOff(BLUE);
+                  break;
+          case '5': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 784);
+                  LedOn(GREEN);
+                  LedOff(CYAN);
+                  break;
+          case '6': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 880);
+                  LedOn(YELLOW);
+                  break; 
+          case '7': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 988);
+                  LedOn(ORANGE);
+                  break; 
+          case '8': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 392);
+                  break; 
+          case '0': PWMAudioOff(BUZZER1);
+                  LedOff(WHITE);
+                  LedOff(PURPLE);
+                  LedOff(BLUE);
+                  LedOff(CYAN);
+                  LedOff(GREEN);
+                  LedOff(YELLOW);
+                  LedOff(ORANGE);
+                  break;                  
+        }
+        i++;
+      }
+    /* 15 seconds countdown and the red led blink */ 
+    if(u16Counter == 6700)
+    {
+      PWMAudioOff(BUZZER1);
+      LedBlink(RED, LED_2HZ);
+    }
+    if(u16Counter == 21700)
+    {
+     LedOff(RED);
+     flag1=FALSE;
+     u16Counter=480;
+     i = 0;
+    }
+   
+  }
+  
+  /*Press button2 .The third song.Painter */
+  if(WasButtonPressed(BUTTON2))
+  {
+    ButtonAcknowledge(BUTTON2);
+    flag2=TRUE;
+  }
+  if(flag2)
+  { 
+    char music2[100] ="555333555333555333111110222444333222555550";
+    u16Counter++; 
+  
+    if((u16Counter-500)%100 == 0 && u16Counter < 4701)
+    {
+        
+          switch(music2[i])
+        {
+          case '1': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 533);
+                  LedOn(WHITE);
+                  LedOff(BLUE);
+                  break;
+          case '2': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 587);
+                  LedOn(PURPLE);
+                  LedOff(BLUE);
+                  break;
+          case '3': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 659);
+                  LedOn(BLUE);
+                  LedOff(GREEN);
+                  LedOff(CYAN);
+                  break;
+          case '4': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 698);
+                  LedOn(CYAN);
+                  LedOff(PURPLE);
+                  break;
+          case '5': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 784);
+                  LedOn(GREEN);
+                  LedOff(BLUE);
+                  LedOff(PURPLE);
+                  break;
+          case '6': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 880);
+                  LedOn(YELLOW);
+                  break; 
+          case '7': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 494);
+                  LedOn(ORANGE);
+                  break; 
+          case '8': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 392);
+                  break; 
+          case '0': PWMAudioOff(BUZZER1);
+                  LedOff(WHITE);
+                  LedOff(PURPLE);
+                  LedOff(BLUE);
+                  LedOff(CYAN);
+                  LedOff(GREEN);
+                  LedOff(YELLOW);
+                  LedOff(ORANGE);
+                  break;                  
+        }
+        i++;
+      }
+     /* 15 seconds countdown and the red led blink */  
+    if(u16Counter == 4700)
+    {
+      PWMAudioOff(BUZZER1);
+      LedBlink(RED, LED_2HZ);
+    }
+     if(u16Counter == 19700)
+    {
+     LedOff(RED);
+     flag2=FALSE;
+     u16Counter=480;
+     i = 0;
+    }
+   
+  }
+  /*Press button3 .The fourth song.Mary had a little lamb   */
+  if(WasButtonPressed(BUTTON3))
+  {
+    ButtonAcknowledge(BUTTON3);
+    flag3=TRUE;
+  }
+  if(flag3)
+  { 
+    char music3[100] = "3333022201110222033330333033333300222202220222220033305550555550";
+    u16Counter++; 
+  
+    if((u16Counter-500)%100 == 0 && u16Counter < 6901)
+    {
+        
+          switch(music3[i])
+        {
+          case '1': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 262);
+                  LedOn(WHITE);
+                  break;
+          case '2': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 294);
+                  LedOn(PURPLE);
+                  break;
+          case '3': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 330);
+                  LedOn(BLUE);
+                  break;
+          case '4': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 698);
+                  LedOn(CYAN);
+                  break;
+          case '5': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 392);
+                  LedOn(GREEN);
+                  break;
+          case '6': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 880);
+                  LedOn(YELLOW);
+                  break; 
+          case '7': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 988);
+                  LedOn(ORANGE);
+                  break; 
+          case '8': PWMAudioOn(BUZZER1);
+                  PWMAudioSetFrequency(BUZZER1, 392);
+                  break; 
+          case '0': PWMAudioOff(BUZZER1);
+                  LedOff(WHITE);
+                  LedOff(PURPLE);
+                  LedOff(BLUE);
+                  LedOff(CYAN);
+                  LedOff(GREEN);
+                  LedOff(YELLOW);
+                  LedOff(ORANGE);
+                  break;                  
+        }
+        i++;
+      }
+    /* 15 seconds countdown and the red led blink */   
+    if(u16Counter == 6900)
+    {
+      PWMAudioOff(BUZZER1);
+      LedBlink(RED, LED_2HZ);
+    }
+     if(u16Counter == 21900)
+    {
+     LedOff(RED);
+     flag3=FALSE;
+     u16Counter=480;
+     i = 0;
+    } 
+ }
+  
 } /* end UserAppSM_Idle() */
      
 
