@@ -169,10 +169,16 @@ State Machine Function Definitions
 static void UserAppSM_Idle(void)
 {  
   static bool bButton0Flag=FALSE; 
-  static u8 u8Button1Flag=FALSE; 
-  static u8 u8Button2Flag=FALSE; 
-  static u8 u8Button3Flag=FALSE; 
-  static u8 sendhelp=FALSE;
+  static bool bButton1Flag=FALSE; 
+  static bool bButton2Flag=FALSE; 
+  static bool bButton3Flag=FALSE;
+  static bool bButton0CountdownFlag=FALSE; 
+  static bool bButton1CountdownFlag=FALSE; 
+  static bool bButton2CountdownFlag=FALSE; 
+  static bool bButton3CountdownFlag=FALSE; 
+  static bool bsendhelp=FALSE;
+  static bool bStringTrue[10]="TRUE";
+  static bool bStringFalse[10]="FALSE";
   static u16 u16Counter = 480;
   static u8 u8SoundCount = 0;
   static u8 u8time=0;
@@ -182,16 +188,10 @@ static void UserAppSM_Idle(void)
   static u8 counter=0;
   static u8 u8CharCount=0;
   static u8 u8CountReally=0;
-  static u8 Button0CountdownFlag=FALSE; 
-  static u8 Button1CountdownFlag=FALSE; 
-  static u8 Button2CountdownFlag=FALSE; 
-  static u8 Button3CountdownFlag=FALSE; 
   static u8 answer0[]="stars,bells,paint,dream,";
   static u8 answer1[]="bells";
   static u8 answer2[]="paint";
   static u8 answer3[]="dream";
-  static u8 string0[10]="TRUE";
-  static u8 string1[10]="FALSE";
   static u8 u8stringhelp[8]="help";
   static u8 u8strinagain[8]="again";
   static u8 u8sendagain=0;
@@ -210,11 +210,17 @@ static void UserAppSM_Idle(void)
        u8adjsong=0;
        for(u8 k=0;k<4;k++)
        {
+         u8 i=0;
          for(u8 t=0;t<5;t++)
         {
             if(G_au8AntApiCurrentData[t]==answer0[k*6+t])
             {
-              u8adjsong=1;
+              i++;
+              if(i==5)
+              {
+                u8adjsong=1;
+              }
+              
             }
             else
             {
@@ -228,12 +234,12 @@ static void UserAppSM_Idle(void)
        } 
        if(u8adjsong==1)
        {
-          LCDMessage (LINE2_START_ADDR,string0);
+          LCDMessage (LINE2_START_ADDR,bStringTrue);
           LCDClearChars(LINE2_START_ADDR+4,16);
        }
        else
        {
-          LCDMessage (LINE2_START_ADDR,string1);
+          LCDMessage (LINE2_START_ADDR,bStringFalse);
           LCDClearChars(LINE2_START_ADDR+5,15);
        }
        u8sendagain=1;
@@ -241,10 +247,10 @@ static void UserAppSM_Idle(void)
      else if(G_eAntApiCurrentMessageClass == ANT_TICK)
      {
        /* when call for help ,send it to slave */
-     if(sendhelp) 
+     if(bsendhelp) 
       {
         AntQueueBroadcastMessage(u8stringhelp);
-        sendhelp=FALSE;
+        bsendhelp=FALSE;
       }
       if( u8sendagain==1)
       {
@@ -270,7 +276,7 @@ static void UserAppSM_Idle(void)
     char music0[100] = "1111011110555505555066660666605555500444404444033330333302222022220111110";
     u16Counter++; 
   
-    if((u16Counter-500)%100 == 0 && u16Counter < 1001)//7701
+    if((u16Counter-500)%100 == 0 && u16Counter < 7701)
     {
       
           switch(music0[u8SoundCount])
@@ -323,7 +329,7 @@ static void UserAppSM_Idle(void)
         }
         u8SoundCount++;
      }      /* the song end and the red led on */
-    if(u16Counter == 1000)//7700
+    if(u16Counter == 7700)
     {
       PWMAudioOff(BUZZER1);
       PWMAudioOff(BUZZER2);
@@ -332,19 +338,19 @@ static void UserAppSM_Idle(void)
     }
     
      /* 15 seconds countdown.Print the song name in debug */
-    if( (1000 < u16Counter) &&(u16Counter < 12700)  )//22700
+    if( (7700 < u16Counter) &&(u16Counter < 22700)  )
     {
       u8time++;
       if(u8time==10)
       {
        u8time=0;
-       Button0CountdownFlag=TRUE;
+       bButton0CountdownFlag=TRUE;
       }
       else
       {
-       Button0CountdownFlag=FALSE;
+       bButton0CountdownFlag=FALSE;
       }
-      if(Button0CountdownFlag)
+      if(bButton0CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
@@ -358,7 +364,7 @@ static void UserAppSM_Idle(void)
          u8CountReally++;
           if(u8CountReally>5)
           {
-            LCDMessage (LINE2_START_ADDR,string1);
+            LCDMessage (LINE2_START_ADDR,bStringFalse);
             LCDClearChars(LINE2_START_ADDR+5,15);
             u8CountReally=0;
           }
@@ -371,7 +377,7 @@ static void UserAppSM_Idle(void)
             if(counter==5)
             {
               u8adjsong=1;
-              LCDMessage (LINE2_START_ADDR,string0);
+              LCDMessage (LINE2_START_ADDR,bStringTrue);
               LCDClearChars(LINE2_START_ADDR+4,16);
             }
           }
@@ -382,24 +388,24 @@ static void UserAppSM_Idle(void)
               helpcount++;
               if(helpcount==4)
               {
-                sendhelp=TRUE;
+                bsendhelp=TRUE;
                 helpcount=0;
               }
             }
             else
             {
-              LCDMessage(LINE2_START_ADDR,string1);
+              LCDMessage(LINE2_START_ADDR,bStringFalse);
               LCDClearChars(LINE2_START_ADDR+5,15);
             }
    
           }
         }
-        Button0CountdownFlag=FALSE;
+        bButton0CountdownFlag=FALSE;
      }      
  
    }
     /* 15 seconds countdown is over */
-    if(u16Counter == 12700)
+    if(u16Counter == 22700)
     {
      LedOff(RED);
      bButton0Flag=FALSE;
@@ -413,12 +419,12 @@ static void UserAppSM_Idle(void)
   if(WasButtonPressed(BUTTON1))
   {
     ButtonAcknowledge(BUTTON1);
-    u8Button1Flag=TRUE;
+    bButton1Flag=TRUE;
     u8CountReally=0;
     counter=0;
     LCDClearChars(LINE2_START_ADDR,20); 
   }
-  if(u8Button1Flag)
+  if(bButton1Flag)
   { 
     char music1[100] = "3303303300003303303300003305501100223300000044044044044044033033003330330220220110222225550";
     u16Counter++; 
@@ -492,13 +498,13 @@ static void UserAppSM_Idle(void)
       if(u8time==10)
       {
        u8time=0;
-       Button1CountdownFlag=TRUE;
+       bButton1CountdownFlag=TRUE;
       }
       else
       {
-       Button1CountdownFlag=FALSE;
+       bButton1CountdownFlag=FALSE;
       }
-      if(Button1CountdownFlag)
+      if(bButton1CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
@@ -522,7 +528,7 @@ static void UserAppSM_Idle(void)
             /* the input answer is true */
             if(counter==5)
             {
-              LCDMessage (LINE2_START_ADDR,string0);
+              LCDMessage (LINE2_START_ADDR,bStringTrue);
               LCDClearChars(LINE2_START_ADDR+4,16);
             }
           }
@@ -534,19 +540,19 @@ static void UserAppSM_Idle(void)
               helpcount++;
               if(helpcount==4)
               {
-                sendhelp=TRUE;
+                bsendhelp=TRUE;
                 helpcount=0;
               }
             }
             /* the in put answer is false */
             else
             {
-              LCDMessage (LINE2_START_ADDR,string1);
+              LCDMessage (LINE2_START_ADDR,bStringFalse);
               LCDClearChars(LINE2_START_ADDR+5,15);
             }
           }
       } 
-        Button1CountdownFlag=FALSE; 
+        bButton1CountdownFlag=FALSE; 
      }
       
     }
@@ -554,7 +560,7 @@ static void UserAppSM_Idle(void)
     if(u16Counter == 24700)
     {
      LedOff(RED);
-     u8Button1Flag=FALSE;
+     bButton1Flag=FALSE;
      u16Counter=480;
      u8SoundCount = 0;
     }
@@ -565,12 +571,12 @@ static void UserAppSM_Idle(void)
   if(WasButtonPressed(BUTTON2))
   {
     ButtonAcknowledge(BUTTON2);
-    u8Button2Flag=TRUE;
+    bButton2Flag=TRUE;
     u8CountReally=0;
     counter=0;
     LCDClearChars(LINE2_START_ADDR,20); 
   }
-  if(u8Button2Flag)
+  if(bButton2Flag)
   { 
     char music2[100] ="555333555333555333111110222444333222555550";
     u16Counter++; 
@@ -647,13 +653,13 @@ static void UserAppSM_Idle(void)
       if(u8time==10)
       {
        u8time=0;
-       Button2CountdownFlag=TRUE;
+       bButton2CountdownFlag=TRUE;
       }
       else
       {
-       Button2CountdownFlag=FALSE;
+       bButton2CountdownFlag=FALSE;
       }
-      if(Button2CountdownFlag)
+      if(bButton2CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
@@ -667,7 +673,7 @@ static void UserAppSM_Idle(void)
           if(u8CountReally>5)
           {
             /* the in put answer is false */
-            LCDMessage (LINE2_START_ADDR,string1);
+            LCDMessage (LINE2_START_ADDR,bStringFalse);
             LCDClearChars(LINE2_START_ADDR+5,15);
 
             u8CountReally=0;
@@ -680,7 +686,7 @@ static void UserAppSM_Idle(void)
             /* the input answer is true */
             if(counter==5)
             {
-              LCDMessage (LINE2_START_ADDR,string0);
+              LCDMessage (LINE2_START_ADDR,bStringTrue);
               LCDClearChars(LINE2_START_ADDR+4,16);
             }
             
@@ -692,18 +698,13 @@ static void UserAppSM_Idle(void)
             helpcount++;
             if(helpcount==4)
             {
-              sendhelp=TRUE;
+              bsendhelp=TRUE;
               helpcount=0;
             }
           }
-         /* else
-          {
-            LCDMessage (LINE2_START_ADDR,string1);
-            LCDClearChars(LINE2_START_ADDR+5,15);
-          }
-      */
+  
       } 
-        Button2CountdownFlag=FALSE; 
+        bButton2CountdownFlag=FALSE; 
      }
       
     }
@@ -711,7 +712,7 @@ static void UserAppSM_Idle(void)
      if(u16Counter == 19700)
     {
      LedOff(RED);
-     u8Button2Flag=FALSE;
+     bButton2Flag=FALSE;
      u16Counter=480;
      u8SoundCount = 0;
     }
@@ -721,12 +722,12 @@ static void UserAppSM_Idle(void)
   if(WasButtonPressed(BUTTON3))
   {
     ButtonAcknowledge(BUTTON3);
-    u8Button3Flag=TRUE;
+    bButton3Flag=TRUE;
     u8CountReally=0;
     counter=0;
     LCDClearChars(LINE2_START_ADDR,20); 
   }
-  if(u8Button3Flag)
+  if(bButton3Flag)
   { 
     char music3[100] = "30813230813230814340814340434450565630030813230813230814340814340434450565630";
     u16Counter++; 
@@ -809,13 +810,13 @@ static void UserAppSM_Idle(void)
       if(u8time==10)
       {
        u8time=0;
-       Button3CountdownFlag=TRUE;
+       bButton3CountdownFlag=TRUE;
       }
       else
       {
-       Button3CountdownFlag=FALSE;
+       bButton3CountdownFlag=FALSE;
       }
-      if(Button3CountdownFlag)
+      if(bButton3CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
@@ -839,7 +840,7 @@ static void UserAppSM_Idle(void)
             /* the input answer is true */
             if(counter==5)
             {
-              LCDMessage (LINE2_START_ADDR,string0);
+              LCDMessage (LINE2_START_ADDR,bStringTrue);
               LCDClearChars(LINE2_START_ADDR+4,16);
             }
           }
@@ -851,20 +852,20 @@ static void UserAppSM_Idle(void)
               helpcount++;
               if(helpcount==4)
               {
-                sendhelp=TRUE;
+                bsendhelp=TRUE;
                 helpcount=0;
               }
             }
             /* the in put answer is false */
             else
             {
-              LCDMessage (LINE2_START_ADDR,string1);
+              LCDMessage (LINE2_START_ADDR,bStringFalse);
               LCDClearChars(LINE2_START_ADDR+5,15);
             }
      
           }
       } 
-        Button3CountdownFlag=FALSE; 
+        bButton3CountdownFlag=FALSE; 
      }
       
     }
@@ -872,7 +873,7 @@ static void UserAppSM_Idle(void)
      if(u16Counter == 38600)
     {
      LedOff(RED);
-     u8Button3Flag=FALSE;
+     bButton3Flag=FALSE;
      u16Counter=480;
      u8SoundCount = 0;
     } 
