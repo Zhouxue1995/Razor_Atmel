@@ -60,10 +60,16 @@ Variable names shall start with "UserApp_" and be declared as static.
 static fnCode_type UserApp_StateMachine;            /* The state machine function pointer */
 static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
 
+static u32 u32DefaultCounter = 0;                   /* Debug variable */
 
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
+extern AntSetupDataType G_stAntSetupData;                         /* From ant.c */
+
+extern u32 G_u32AntApiCurrentDataTimeStamp;                       /* From ant_api.c */
+extern AntApplicationMessageType G_eAntApiCurrentMessageClass;    /* From ant_api.c */
+extern u8 G_au8AntApiCurrentData[ANT_APPLICATION_MESSAGE_BYTES];  /* From ant_api.c */
 
 static u8 UserApp_au8MyName[] = "Listen to songs ";
 extern u8 G_au8DebugScanfBuffer[];   
@@ -95,14 +101,28 @@ Promises:
 */
 void UserAppInitialize(void)
 {
+  /* Configure ANT for this application */
+  G_stAntSetupData.AntChannel          = ANT_CHANNEL_USERAPP;
+  G_stAntSetupData.AntSerialLo         = ANT_SERIAL_LO_USERAPP;
+  G_stAntSetupData.AntSerialHi         = ANT_SERIAL_HI_USERAPP;
+  G_stAntSetupData.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+  G_stAntSetupData.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+  G_stAntSetupData.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
+  G_stAntSetupData.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+  G_stAntSetupData.AntFrequency        = ANT_FREQUENCY_USERAPP;
+  G_stAntSetupData.AntTxPower          = ANT_TX_POWER_USERAPP;
+  
   LCDMessage(LINE1_START_ADDR, UserApp_au8MyName);
   LCDClearChars(LINE1_START_ADDR +15 , 5);
-   
   
-  
+  LedOn(LCD_RED);
+  LedOff(LCD_GREEN);
+  LedOn(LCD_BLUE);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
+    AntChannelConfig(ANT_MASTER);
+    AntOpenChannel();
     UserApp_StateMachine = UserAppSM_Idle;
   }
   else
@@ -148,52 +168,112 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {  
-  static u8 flag0=FALSE; 
-  static u8 flag1=FALSE; 
-  static u8 flag2=FALSE; 
-  static u8 flag3=FALSE; 
+  static bool bButton0Flag=FALSE; 
+  static u8 u8Button1Flag=FALSE; 
+  static u8 u8Button2Flag=FALSE; 
+  static u8 u8Button3Flag=FALSE; 
+  static u8 sendhelp=FALSE;
   static u16 u16Counter = 480;
-  static u8 i = 0;
+  static u8 u8SoundCount = 0;
   static u8 u8time=0;
-  static u8 u8j=0;
-  static u8 count=0;
+  static u8 helpcount=0;
+  static u8 u8helpcounter=0;
+  static u8 HelpAnswerCount=0;
   static u8 counter=0;
   static u8 u8CharCount=0;
   static u8 u8CountReally=0;
-  static u8 flag00=FALSE; 
-  static u8 flag10=FALSE; 
-  static u8 flag20=FALSE; 
-  static u8 flag30=FALSE; 
-  static u8 answer0[20]="little star";
-  static u8 answer1[20]="jingle bells";
-  static u8 answer2[20]="painter";
-  static u8 answer3[20]="dream wedding";
+  static u8 Button0CountdownFlag=FALSE; 
+  static u8 Button1CountdownFlag=FALSE; 
+  static u8 Button2CountdownFlag=FALSE; 
+  static u8 Button3CountdownFlag=FALSE; 
+  static u8 answer0[]="stars,bells,paint,dream,";
+  static u8 answer1[]="bells";
+  static u8 answer2[]="paint";
+  static u8 answer3[]="dream";
   static u8 string0[10]="TRUE";
   static u8 string1[10]="FALSE";
+  static u8 u8stringhelp[8]="help";
+  static u8 u8strinagain[8]="again";
+  static u8 u8sendagain=0;
+  static u8 u8adjsong=0;
   
-  LedOn(LCD_RED);
-  LedOff(LCD_GREEN);
-  LedOn(LCD_BLUE);
-  
-  
-   /*Press button0 .The first song.Little Star */
+ 
+   if( AntReadData() )
+   {
+     /* New data message: check what it is */
+      if(G_eAntApiCurrentMessageClass == ANT_DATA)
+     {
+        LCDClearChars(LINE1_START_ADDR,20);
+      /* We got some data: parse it into au8DataContent[] */
+       LCDMessage(LINE1_START_ADDR, G_au8AntApiCurrentData);
+      /* compare off-site call help answer if true */
+       u8adjsong=0;
+       for(u8 k=0;k<4;k++)
+       {
+         for(u8 t=0;t<5;t++)
+        {
+            if(G_au8AntApiCurrentData[t]==answer0[k*6+t])
+            {
+              u8adjsong=1;
+            }
+            else
+            {
+               u8adjsong=0; 
+            }
+        }
+       if(u8adjsong==1)
+       {
+          break;
+       }
+       } 
+       if(u8adjsong==1)
+       {
+          LCDMessage (LINE2_START_ADDR,string0);
+          LCDClearChars(LINE2_START_ADDR+4,16);
+       }
+       else
+       {
+          LCDMessage (LINE2_START_ADDR,string1);
+          LCDClearChars(LINE2_START_ADDR+5,15);
+       }
+       u8sendagain=1;
+     }
+     else if(G_eAntApiCurrentMessageClass == ANT_TICK)
+     {
+       /* when call for help ,send it to slave */
+     if(sendhelp) 
+      {
+        AntQueueBroadcastMessage(u8stringhelp);
+        sendhelp=FALSE;
+      }
+      if( u8sendagain==1)
+      {
+         AntQueueBroadcastMessage(u8strinagain);
+         u8sendagain=0;
+      }
+     }
+   }
+
+   /* Here a total of 4 songs, the code of each song basically similar,
+   I think you only look at the first song to know the code of other songs!*/
+    /*Press button0 .The first song.Little Star */
   if(WasButtonPressed(BUTTON0))
   {
     ButtonAcknowledge(BUTTON0);
-    flag0=TRUE;
+    bButton0Flag=TRUE;
     u8CountReally=0;
     counter=0;
     LCDClearChars(LINE2_START_ADDR,20); 
   }
-  if(flag0)
-  { 
+  if(bButton0Flag)
+  { /* music */
     char music0[100] = "1111011110555505555066660666605555500444404444033330333302222022220111110";
     u16Counter++; 
   
-    if((u16Counter-500)%100 == 0 && u16Counter < 7701)
+    if((u16Counter-500)%100 == 0 && u16Counter < 1001)//7701
     {
-        
-          switch(music0[i])
+      
+          switch(music0[u8SoundCount])
         {
           case '1': PWMAudioOn(BUZZER1);
                   PWMAudioSetFrequency(BUZZER1, 533);
@@ -236,12 +316,14 @@ static void UserAppSM_Idle(void)
                     LedOff(GREEN);
                     LedOff(YELLOW);
                     LedOff(ORANGE);
-                    break;                  
+                    break; 
+        default:
+                u32DefaultCounter++;
+                break;
         }
-        i++;
-     }
-      
-    if(u16Counter == 7700)
+        u8SoundCount++;
+     }      /* the song end and the red led on */
+    if(u16Counter == 1000)//7700
     {
       PWMAudioOff(BUZZER1);
       PWMAudioOff(BUZZER2);
@@ -249,63 +331,80 @@ static void UserAppSM_Idle(void)
       LCDClearChars(LINE1_START_ADDR,20);
     }
     
-     /* Print the song name in ddebug */
-    if( (7700 < u16Counter) &&(u16Counter < 22700)  )
+     /* 15 seconds countdown.Print the song name in debug */
+    if( (1000 < u16Counter) &&(u16Counter < 12700)  )//22700
     {
       u8time++;
       if(u8time==10)
       {
        u8time=0;
-       flag00=TRUE;
+       Button0CountdownFlag=TRUE;
       }
       else
       {
-       flag00=FALSE;
+       Button0CountdownFlag=FALSE;
       }
-      if(flag00)
+      if(Button0CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
         au8UserInputBuffer[u8CharCount] = '\0';
-        for(u8j=0;u8j<u8CharCount;u8j++)
+
+        u8adjsong=0;
+        for(u8 j=0;j<u8CharCount;j++)
         {
          LCDMessage (LINE1_START_ADDR+u8CountReally,au8UserInputBuffer);
-         u8namebuffer[u8j]=au8UserInputBuffer[u8j];
+         u8namebuffer[j]=au8UserInputBuffer[j];
          u8CountReally++;
-          if(u8CountReally==20)
+          if(u8CountReally>5)
           {
-            LCDClearChars(LINE1_START_ADDR,20); 
-            LCDMessage (LINE1_START_ADDR,au8UserInputBuffer); 
+            LCDMessage (LINE2_START_ADDR,string1);
+            LCDClearChars(LINE2_START_ADDR+5,15);
             u8CountReally=0;
           }
- 
-          /* Compare */
-          if( answer0[counter]==au8UserInputBuffer[u8j])
+          
+          /* Compare the input answer to  really answer */
+          if (answer0[counter]==au8UserInputBuffer[j])
           {
             counter++;
-            if(counter==11)
+            /* the input answer is true */
+            if(counter==5)
             {
+              u8adjsong=1;
               LCDMessage (LINE2_START_ADDR,string0);
               LCDClearChars(LINE2_START_ADDR+4,16);
             }
           }
           else
           {
-            LCDMessage (LINE2_START_ADDR,string1);
-            LCDClearChars(LINE2_START_ADDR+5,15); 
+            if(u8stringhelp[helpcount]==au8UserInputBuffer[j])
+            { 
+              helpcount++;
+              if(helpcount==4)
+              {
+                sendhelp=TRUE;
+                helpcount=0;
+              }
+            }
+            else
+            {
+              LCDMessage(LINE2_START_ADDR,string1);
+              LCDClearChars(LINE2_START_ADDR+5,15);
+            }
+   
           }
-      } 
-        flag00=FALSE; 
-     }
-      
-    }
-    /* 15 seconds countdown */
-    if(u16Counter == 22700)
+        }
+        Button0CountdownFlag=FALSE;
+     }      
+ 
+   }
+    /* 15 seconds countdown is over */
+    if(u16Counter == 12700)
     {
      LedOff(RED);
-     flag0=FALSE;
+     bButton0Flag=FALSE;
      u16Counter=480;
-     i = 0;
+     u8SoundCount = 0;
     }
   }
  
@@ -314,12 +413,12 @@ static void UserAppSM_Idle(void)
   if(WasButtonPressed(BUTTON1))
   {
     ButtonAcknowledge(BUTTON1);
-    flag1=TRUE;
+    u8Button1Flag=TRUE;
     u8CountReally=0;
     counter=0;
     LCDClearChars(LINE2_START_ADDR,20); 
   }
-  if(flag1)
+  if(u8Button1Flag)
   { 
     char music1[100] = "3303303300003303303300003305501100223300000044044044044044033033003330330220220110222225550";
     u16Counter++; 
@@ -328,7 +427,7 @@ static void UserAppSM_Idle(void)
     if((u16Counter-500)%100 == 0 && u16Counter < 9701)
     {
         
-          switch(music1[i])
+          switch(music1[u8SoundCount])
         {
           case '1': PWMAudioOn(BUZZER1);
                   PWMAudioSetFrequency(BUZZER1, 533);
@@ -372,39 +471,42 @@ static void UserAppSM_Idle(void)
                   LedOff(GREEN);
                   LedOff(YELLOW);
                   LedOff(ORANGE);
-                  break;                  
+                  break;  
+         default:
+                 u32DefaultCounter++;
+                 break;
         }
-        i++;
+        u8SoundCount++;
       }
-      
+      /* the song end and red led on */ 
     if(u16Counter == 9700)
     {
       PWMAudioOff(BUZZER1);
       LedBlink(RED, LED_2HZ);
       LCDClearChars(LINE1_START_ADDR,20);
     }
-      /* Print the song name in ddebug */
+      /* 15 seconds countdown. Print the song name in ddebug */
     if( (9700 < u16Counter) &&(u16Counter < 24700)  )
     {
       u8time++;
       if(u8time==10)
       {
        u8time=0;
-       flag10=TRUE;
+       Button1CountdownFlag=TRUE;
       }
       else
       {
-       flag10=FALSE;
+       Button1CountdownFlag=FALSE;
       }
-      if(flag10)
+      if(Button1CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
         au8UserInputBuffer[u8CharCount] = '\0';
-        for(u8j=0;u8j<u8CharCount;u8j++)
+        for(u8 j=0;j<u8CharCount;j++)
         {
          LCDMessage (LINE1_START_ADDR+u8CountReally,au8UserInputBuffer);
-         u8namebuffer[u8j]=au8UserInputBuffer[u8j];
+         u8namebuffer[j]=au8UserInputBuffer[j];
          u8CountReally++;
           if(u8CountReally==20)
           {
@@ -413,11 +515,12 @@ static void UserAppSM_Idle(void)
             u8CountReally=0;
           }
  
-          /* Compare */
-          if( answer1[counter]==au8UserInputBuffer[u8j])
+          /* Compare the input answer to  really answer */
+          if( answer1[counter]==au8UserInputBuffer[j])
           {
             counter++;
-            if(counter==12)
+            /* the input answer is true */
+            if(counter==5)
             {
               LCDMessage (LINE2_START_ADDR,string0);
               LCDClearChars(LINE2_START_ADDR+4,16);
@@ -425,20 +528,35 @@ static void UserAppSM_Idle(void)
           }
           else
           {
-            LCDMessage (LINE2_START_ADDR,string1);
-            LCDClearChars(LINE2_START_ADDR+5,15); 
+            /* if the input answer is help */
+            if(u8stringhelp[helpcount]==au8UserInputBuffer[j])
+            {
+              helpcount++;
+              if(helpcount==4)
+              {
+                sendhelp=TRUE;
+                helpcount=0;
+              }
+            }
+            /* the in put answer is false */
+            else
+            {
+              LCDMessage (LINE2_START_ADDR,string1);
+              LCDClearChars(LINE2_START_ADDR+5,15);
+            }
           }
       } 
-        flag10=FALSE; 
+        Button1CountdownFlag=FALSE; 
      }
       
     }
+    /* 15 seconds countdown is over */
     if(u16Counter == 24700)
     {
      LedOff(RED);
-     flag1=FALSE;
+     u8Button1Flag=FALSE;
      u16Counter=480;
-     i = 0;
+     u8SoundCount = 0;
     }
    
   }
@@ -447,12 +565,12 @@ static void UserAppSM_Idle(void)
   if(WasButtonPressed(BUTTON2))
   {
     ButtonAcknowledge(BUTTON2);
-    flag2=TRUE;
+    u8Button2Flag=TRUE;
     u8CountReally=0;
     counter=0;
     LCDClearChars(LINE2_START_ADDR,20); 
   }
-  if(flag2)
+  if(u8Button2Flag)
   { 
     char music2[100] ="555333555333555333111110222444333222555550";
     u16Counter++; 
@@ -460,7 +578,7 @@ static void UserAppSM_Idle(void)
     if((u16Counter-500)%100 == 0 && u16Counter < 4701)
     {
         
-          switch(music2[i])
+          switch(music2[u8SoundCount])
         {
           case '1': PWMAudioOn(BUZZER1);
                   PWMAudioSetFrequency(BUZZER1, 533);
@@ -508,73 +626,94 @@ static void UserAppSM_Idle(void)
                   LedOff(GREEN);
                   LedOff(YELLOW);
                   LedOff(ORANGE);
-                  break;                  
+                  break; 
+          default:
+                u32DefaultCounter++;
+                break;
         }
-        i++;
+        u8SoundCount++;
       }
-      
+      /* the song end and red led on */ 
     if(u16Counter == 4700)
     {
       PWMAudioOff(BUZZER1);
       LedBlink(RED, LED_2HZ);
       LCDClearChars(LINE1_START_ADDR,20);
     }
-      /* Print the song name in ddebug */
+      /* 15 seconds countdown. Print the song name in ddebug */
     if( (4700 < u16Counter) &&(u16Counter < 19700)  )
     {
       u8time++;
       if(u8time==10)
       {
        u8time=0;
-       flag20=TRUE;
+       Button2CountdownFlag=TRUE;
       }
       else
       {
-       flag20=FALSE;
+       Button2CountdownFlag=FALSE;
       }
-      if(flag20)
+      if(Button2CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
         au8UserInputBuffer[u8CharCount] = '\0';
-        for(u8j=0;u8j<u8CharCount;u8j++)
+        for(u8 j=0;j<u8CharCount;j++)
         {
          LCDMessage (LINE1_START_ADDR+u8CountReally,au8UserInputBuffer);
-         u8namebuffer[u8j]=au8UserInputBuffer[u8j];
+         u8namebuffer[j]=au8UserInputBuffer[j];
          u8CountReally++;
-          if(u8CountReally==20)
+         
+          if(u8CountReally>5)
           {
-            LCDClearChars(LINE1_START_ADDR,20); 
-            LCDMessage (LINE1_START_ADDR,au8UserInputBuffer); 
+            /* the in put answer is false */
+            LCDMessage (LINE2_START_ADDR,string1);
+            LCDClearChars(LINE2_START_ADDR+5,15);
+
             u8CountReally=0;
           }
  
-          /* Compare */
-          if( answer2[counter]==au8UserInputBuffer[u8j])
+          /* Compare the input answer to  really answer */
+          if(answer2[counter]==au8UserInputBuffer[j])
           {
             counter++;
-            if(counter==7)
+            /* the input answer is true */
+            if(counter==5)
             {
               LCDMessage (LINE2_START_ADDR,string0);
               LCDClearChars(LINE2_START_ADDR+4,16);
             }
+            
           }
-          else
+         
+          /* if the input answer is help */
+          if(u8stringhelp[helpcount]==au8UserInputBuffer[j])
+          {
+            helpcount++;
+            if(helpcount==4)
+            {
+              sendhelp=TRUE;
+              helpcount=0;
+            }
+          }
+         /* else
           {
             LCDMessage (LINE2_START_ADDR,string1);
-            LCDClearChars(LINE2_START_ADDR+5,15); 
+            LCDClearChars(LINE2_START_ADDR+5,15);
           }
+      */
       } 
-        flag20=FALSE; 
+        Button2CountdownFlag=FALSE; 
      }
       
     }
+    /* 15 seconds countdown is over */
      if(u16Counter == 19700)
     {
      LedOff(RED);
-     flag2=FALSE;
+     u8Button2Flag=FALSE;
      u16Counter=480;
-     i = 0;
+     u8SoundCount = 0;
     }
    
   }
@@ -582,12 +721,12 @@ static void UserAppSM_Idle(void)
   if(WasButtonPressed(BUTTON3))
   {
     ButtonAcknowledge(BUTTON3);
-    flag3=TRUE;
+    u8Button3Flag=TRUE;
     u8CountReally=0;
     counter=0;
     LCDClearChars(LINE2_START_ADDR,20); 
   }
-  if(flag3)
+  if(u8Button3Flag)
   { 
     char music3[100] = "30813230813230814340814340434450565630030813230813230814340814340434450565630";
     u16Counter++; 
@@ -595,7 +734,7 @@ static void UserAppSM_Idle(void)
     if((u16Counter-500)%300 == 0 && (u16Counter < 23601) )
     {
         
-          switch(music3[i])
+          switch(music3[u8SoundCount])
         {
           case '1': PWMAudioOn(BUZZER1);
                   PWMAudioSetFrequency(BUZZER1, 1046);
@@ -649,39 +788,42 @@ static void UserAppSM_Idle(void)
                   LedOff(GREEN);
                   LedOff(YELLOW);
                   LedOff(ORANGE);
-                  break;                  
+                  break; 
+          default:
+                u32DefaultCounter++;
+                break;
         }
-        i++;
+        u8SoundCount++;
       }
-    /* 15 seconds countdown and the red led blink */   
+     /* the song end and red led on */
     if(u16Counter == 23600)
     {
       PWMAudioOff(BUZZER1);
       LedBlink(RED, LED_2HZ);
       LCDClearChars(LINE1_START_ADDR,20);
     }
-      /* Print the song name in ddebug */
+      /* 15 seconds countdown. Print the song name in ddebug */
     if( (23600 < u16Counter) &&(u16Counter < 38600)  )
     {
       u8time++;
       if(u8time==10)
       {
        u8time=0;
-       flag30=TRUE;
+       Button3CountdownFlag=TRUE;
       }
       else
       {
-       flag30=FALSE;
+       Button3CountdownFlag=FALSE;
       }
-      if(flag30)
+      if(Button3CountdownFlag)
       {
         /* Read the buffer and print the contents */
         u8CharCount = DebugScanf(au8UserInputBuffer);
         au8UserInputBuffer[u8CharCount] = '\0';
-        for(u8j=0;u8j<u8CharCount;u8j++)
+        for(u8 j=0;j<u8CharCount;j++)
         {
          LCDMessage (LINE1_START_ADDR+u8CountReally,au8UserInputBuffer);
-         u8namebuffer[u8j]=au8UserInputBuffer[u8j];
+         u8namebuffer[j]=au8UserInputBuffer[j];
          u8CountReally++;
           if(u8CountReally==20)
           {
@@ -690,11 +832,12 @@ static void UserAppSM_Idle(void)
             u8CountReally=0;
           }
  
-          /* Compare */
-          if( answer3[counter]==au8UserInputBuffer[u8j])
+         /* Compare the input answer to  really answer */
+          if( answer3[counter]==au8UserInputBuffer[j])
           {
             counter++;
-            if(counter==13)
+            /* the input answer is true */
+            if(counter==5)
             {
               LCDMessage (LINE2_START_ADDR,string0);
               LCDClearChars(LINE2_START_ADDR+4,16);
@@ -702,22 +845,43 @@ static void UserAppSM_Idle(void)
           }
           else
           {
-            LCDMessage (LINE2_START_ADDR,string1);
-            LCDClearChars(LINE2_START_ADDR+5,15); 
+            /* if the input answer is help */
+            if(u8stringhelp[helpcount]==au8UserInputBuffer[j])
+            {
+              helpcount++;
+              if(helpcount==4)
+              {
+                sendhelp=TRUE;
+                helpcount=0;
+              }
+            }
+            /* the in put answer is false */
+            else
+            {
+              LCDMessage (LINE2_START_ADDR,string1);
+              LCDClearChars(LINE2_START_ADDR+5,15);
+            }
+     
           }
       } 
-        flag30=FALSE; 
+        Button3CountdownFlag=FALSE; 
      }
       
     }
+    /* 15 seconds countdown is over */
      if(u16Counter == 38600)
     {
      LedOff(RED);
-     flag3=FALSE;
+     u8Button3Flag=FALSE;
      u16Counter=480;
-     i = 0;
+     u8SoundCount = 0;
     } 
   }
+  
+  
+
+
+  
   
 } /* end UserAppSM_Idle() */
      
